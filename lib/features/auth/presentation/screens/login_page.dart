@@ -16,7 +16,7 @@ class SignInScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     final cubit = context.read<AuthCubit>();
-
+    //  WeatherEntity weatherEntity = WeatherEntity();
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -59,7 +59,11 @@ class SignInScreen extends StatelessWidget {
                         );
 
                         context.read<LocalStorageCubit>().setLoggedIn(true);
-                        GoRouter.of(context).go(NavigationRoutes.homeScreen);
+                        GoRouter.of(context).go(NavigationRoutes.weatherScreen);
+                        // GoRouter.of(context).go(
+                        //   NavigationRoutes.weatherScreen,
+                        //   extra: weatherEntity,
+                        // );
                       } else if (state is AuthFailure) {
                         showToast(
                           text: state.message,
@@ -196,7 +200,7 @@ Widget buildTextField(
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           filled: true,
-          fillColor: Colors.white.withOpacity(0.1),
+          fillColor: Colors.white.withValues(alpha: 0.1),
           contentPadding: const EdgeInsets.symmetric(
             vertical: 16,
             horizontal: 16,

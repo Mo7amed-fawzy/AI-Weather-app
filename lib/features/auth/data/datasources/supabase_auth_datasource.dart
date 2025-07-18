@@ -19,11 +19,20 @@ class SupabaseAuthDatasource {
     await supabase.auth.signOut();
   }
 
+  // bool isLoggedIn() {
+  //   return supabase.auth.currentSession != null;
+  // }
   bool isLoggedIn() {
-    return supabase.auth.currentSession != null;
+    final session = supabase.auth.currentSession;
+    final user = supabase.auth.currentUser;
+    return session != null && user != null;
   }
 
   String? getUserId() {
     return supabase.auth.currentUser?.id;
+  }
+
+  String? getUserName() {
+    return supabase.auth.currentUser?.userMetadata?['full_name'];
   }
 }

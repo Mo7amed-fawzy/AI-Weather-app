@@ -55,7 +55,10 @@ class SignUpScreen extends StatelessWidget {
                           text: "Account created successfully",
                           state: ToastStates.success,
                         );
-                        GoRouter.of(context).go(NavigationRoutes.signInScreen);
+                        //  final city = cityTextController.text.trim();
+                        GoRouter.of(
+                          context,
+                        ).go('${NavigationRoutes.weatherScreen}/Cairo');
                       } else if (state is AuthFailure) {
                         showToast(
                           text: state.message,
@@ -192,7 +195,7 @@ Widget buildTextField(
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           filled: true,
-          fillColor: Colors.white.withOpacity(0.1),
+          fillColor: Colors.white.withValues(alpha: 0.1),
           contentPadding: const EdgeInsets.symmetric(
             vertical: 16.0,
             horizontal: 16.0,
@@ -219,7 +222,7 @@ class Dot extends StatelessWidget {
       height: 10,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isActive ? Colors.white : Colors.white.withOpacity(0.3),
+        color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.3),
       ),
     );
   }

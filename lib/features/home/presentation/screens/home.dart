@@ -1,149 +1,253 @@
+import 'package:celluweather_task1/features/home/presentation/manager/weather_cubit.dart';
 import 'package:flutter/material.dart';
-import 'package:celluweather_task1/core/styles/colors.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class ForecastScreen extends StatelessWidget {
+  final String city;
+
+  const ForecastScreen({super.key, required this.city});
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    context.read<ForecastCubit>().fetchForecast(city);
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF001F3F), Color(0xFF002B64)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 👤 Welcome Message
-            const Text(
-              "Welcome back 👋",
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-            ),
+      backgroundColor: const Color(0xFF0A1E46),
+      body: SafeArea(
+        child: BlocBuilder<ForecastCubit, ForecastState>(
+          builder: (context, state) {
+            if (state is ForecastLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is ForecastLoaded) {
+              final selectedDay = state.selectedDay;
 
-            const SizedBox(height: 6),
-
-            const Text(
-              "Cairo, Egypt",
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // 🌤️ Weather Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Column(
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.wb_sunny_rounded,
-                    color: Colors.yellow,
-                    size: 64,
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "29°C",
-                    style: TextStyle(
-                      fontSize: 52,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Hello',
+                              style: TextStyle(
+                                color: Colors.blueAccent,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Eslam Sameh',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Icon(Icons.menu, color: Colors.white, size: 28),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    "Sunny",
-                    style: TextStyle(fontSize: 20, color: Colors.white70),
+
+                  // Horizontal Days
+                  SizedBox(
+                    height: 80,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: state.forecast.length,
+                      itemBuilder: (context, index) {
+                        final day = state.forecast[index];
+                        return GestureDetector(
+                          onTap: () {
+                            context.read<ForecastCubit>().selectDay(index);
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  index == state.selectedIndex
+                                      ? Colors.white
+                                      : Colors.white24,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  // day.dayName,
+                                  day.date.split('-').first,
+                                  style: TextStyle(
+                                    color:
+                                        index == state.selectedIndex
+                                            ? Colors.black
+                                            : Colors.white70,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  day.date.split('-').last,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color:
+                                        index == state.selectedIndex
+                                            ? Colors.black
+                                            : Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 40),
+                  const SizedBox(height: 20),
 
-            // 🤖 Ask AI
-            const Text(
-              "Talk to Weather AI",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+                  // Steps
+                  Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.blueAccent,
+                              width: 6,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.directions_walk,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                '5234',
+                                style: TextStyle(
+                                  fontSize: 36,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Steps',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-            const SizedBox(height: 10),
+                  const SizedBox(height: 20),
 
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: TextField(
-                      style: TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "How's the weather tomorrow?",
-                        hintStyle: TextStyle(color: Colors.white54),
+                  // Stats Row
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildStatCircle('12.4', 'KM'),
+                        _buildStatCircle('${selectedDay.humidity}', 'Humidity'),
+                        _buildStatCircle('${selectedDay.wind}', 'Wind'),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Placeholder Chart
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      height: 130,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Graph Placeholder',
+                          style: TextStyle(color: Colors.white70),
+                        ),
                       ),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
-                    onPressed: () {
-                      // handle AI request
-                    },
+
+                  const Spacer(),
+
+                  // Bottom Navigation
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: Colors.white12,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Icon(Icons.star, color: Colors.white),
+                        Icon(Icons.person, color: Colors.white),
+                        Icon(Icons.home, color: Colors.white, size: 30),
+                        Icon(Icons.check_box, color: Colors.white),
+                        Icon(Icons.star_border, color: Colors.white),
+                      ],
+                    ),
                   ),
+
+                  const SizedBox(height: 16),
                 ],
-              ),
+              );
+            } else if (state is ForecastError) {
+              return Center(child: Text('Error: ${state.message}'));
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCircle(String value, String label) {
+    return Column(
+      children: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            CircularProgressIndicator(
+              value: 0.8,
+              color: Colors.blueAccent,
+              backgroundColor: Colors.white24,
+              strokeWidth: 6,
             ),
-
-            const SizedBox(height: 30),
-
-            // 🔁 Refresh Button
-            Center(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () {
-                  // trigger weather refresh
-                },
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                label: const Text(
-                  "Refresh Weather",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
+            Text(
+              value,
+              style: const TextStyle(color: Colors.white, fontSize: 18),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 6),
+        Text(label, style: const TextStyle(color: Colors.white70)),
+      ],
     );
   }
 }

@@ -27,10 +27,10 @@ void showCustomDialog(BuildContext context, VoidCallback onConfirm) {
                     child: Container(
                       margin: const EdgeInsets.only(top: 50),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(25),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           width: 1.5,
                         ),
                       ),
@@ -62,8 +62,8 @@ void showCustomDialog(BuildContext context, VoidCallback onConfirm) {
                                 child: ElevatedButton(
                                   onPressed: () => Navigator.of(context).pop(),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white.withOpacity(
-                                      0.1,
+                                    backgroundColor: Colors.white.withValues(
+                                      alpha: 0.1,
                                     ),
                                     foregroundColor: Colors.white,
                                     shape: const RoundedRectangleBorder(
@@ -115,10 +115,10 @@ void showCustomDialog(BuildContext context, VoidCallback onConfirm) {
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 20,
                         spreadRadius: 1,
                       ),
