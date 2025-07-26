@@ -51,7 +51,6 @@ class _SplashScreenState extends State<SplashScreen>
               ? '${NavigationRoutes.weatherScreen}/Cairo'
               : NavigationRoutes.signInScreen;
 
-      // استخدام fade transition عبر GoRouter أو أي navigator تفضله
       GoRouter.of(context).go(route);
     });
   }

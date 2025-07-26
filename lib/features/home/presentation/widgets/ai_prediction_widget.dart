@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:celluweather_task1/features/ai_analysis/presentation/manager/ai_predict_cubit.dart';
@@ -60,6 +59,7 @@ class _AiPredictionWidgetState extends State<AiPredictionWidget>
               const SizedBox(height: 8),
               Text(
                 state.error!,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.bold,
@@ -73,11 +73,13 @@ class _AiPredictionWidgetState extends State<AiPredictionWidget>
           content = ScaleTransition(
             scale: _scaleAnimation,
             child: Container(
+              height: 150,
+
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.purpleAccent.withValues(alpha: 0.2),
-                    Colors.blueAccent.withValues(alpha: 0.2),
+                    Colors.purpleAccent.withOpacity(0.2),
+                    Colors.blueAccent.withOpacity(0.2),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
@@ -88,7 +90,7 @@ class _AiPredictionWidgetState extends State<AiPredictionWidget>
                 boxShadow: [
                   BoxShadow(
                     color: (isPositive ? Colors.greenAccent : Colors.redAccent)
-                        .withValues(alpha: 0.6),
+                        .withOpacity(0.6),
                     blurRadius: 20,
                     spreadRadius: 1,
                     offset: const Offset(0, 0),
@@ -96,110 +98,135 @@ class _AiPredictionWidgetState extends State<AiPredictionWidget>
                 ],
               ),
               padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  Icon(
-                    isPositive ? Icons.check_circle : Icons.cancel,
-                    color: isPositive ? Colors.greenAccent : Colors.redAccent,
-                    size: 40,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      isPositive
-                          ? 'Conditions look ideal – go for it with confidence!'
-                          : 'Not the ideal time – prepare wisely.',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth > 400;
+
+                  return Flex(
+                    direction: isWide ? Axis.horizontal : Axis.vertical,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        isPositive ? Icons.check_circle : Icons.cancel,
                         color:
                             isPositive ? Colors.greenAccent : Colors.redAccent,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 12,
-                            color: (isPositive
-                                    ? Colors.greenAccent
-                                    : Colors.redAccent)
-                                .withValues(alpha: 0.6),
-                          ),
-                        ],
+                        size: 40,
                       ),
-                    ),
-                  ),
-                ],
+                      const SizedBox(width: 16, height: 16),
+                      Expanded(
+                        child: Text(
+                          isPositive
+                              ? 'Conditions look ideal – go for it with confidence!'
+                              : 'Not the ideal time – prepare wisely.',
+                          textAlign:
+                              isWide ? TextAlign.start : TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color:
+                                isPositive
+                                    ? Colors.greenAccent
+                                    : Colors.redAccent,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 12,
+                                color: (isPositive
+                                        ? Colors.greenAccent
+                                        : Colors.redAccent)
+                                    .withOpacity(0.6),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           );
         } else {
-          content = const Text('click to predict ');
+          content = const Text('Click to predict');
         }
 
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 20),
-          elevation: 2,
-          color: Theme.of(context).cardColor.withValues(alpha: 0.95),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 20),
+              elevation: 2,
+              color: Theme.of(context).cardColor.withOpacity(0.95),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'AI Vision',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth:
+                                constraints.maxWidth > 400
+                                    ? 300
+                                    : constraints.maxWidth * 0.9,
+                          ),
+                          child: TextButton.icon(
+                            onPressed: _onPredictPressed,
+                            icon: const Icon(Icons.bolt, size: 20),
+                            label: const Text('Predict Now'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: const Color(0xFF6C63FF),
+                              shadowColor: const Color(0xFF6C63FF),
+                              elevation: 8,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 500),
+                          transitionBuilder:
+                              (child, animation) => FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                          child: content,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                child: Column(
-                  children: [
-                    const Text(
-                      'AI Vision',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton.icon(
-                      onPressed: _onPredictPressed,
-                      icon: const Icon(Icons.bolt, size: 20),
-                      label: const Text('Predict Now'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: const Color(0xFF6C63FF),
-                        shadowColor: const Color(0xFF6C63FF),
-                        elevation: 8,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 14,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 500),
-                      transitionBuilder:
-                          (child, animation) =>
-                              FadeTransition(opacity: animation, child: child),
-                      child: content,
-                    ),
-                  ],
-                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );

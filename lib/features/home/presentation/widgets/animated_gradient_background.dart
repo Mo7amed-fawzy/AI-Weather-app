@@ -52,19 +52,21 @@ class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground>
     return AnimatedBuilder(
       animation: _controller,
       builder: (_, __) {
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: _alignment.value,
-              end: Alignment.center,
-              colors: [
-                const Color(0xFF1E1E2F),
-                const Color(0xFF6C63FF).withValues(alpha: 0.2),
-                const Color(0xFF00C9FF).withValues(alpha: 0.2),
-              ],
+        return SizedBox.expand(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: _alignment.value,
+                end: Alignment.center,
+                colors: [
+                  const Color(0xFF1E1E2F),
+                  const Color(0xFF6C63FF).withOpacity(0.2),
+                  const Color(0xFF00C9FF).withOpacity(0.2),
+                ],
+              ),
             ),
+            child: widget.child,
           ),
-          child: widget.child,
         );
       },
     );

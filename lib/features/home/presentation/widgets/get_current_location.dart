@@ -18,5 +18,6 @@ Future<Position?> getCurrentLocation() async {
 
   return await Geolocator.getCurrentPosition(
     desiredAccuracy: LocationAccuracy.high,
+    timeLimit: Duration(seconds: 10),
   );
 }

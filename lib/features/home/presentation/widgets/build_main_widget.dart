@@ -1,11 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:celluweather_task1/features/home/presentation/manager/weather_cubit.dart';
 import 'package:celluweather_task1/features/home/presentation/widgets/ai_prediction_widget.dart';
 import 'package:celluweather_task1/features/home/presentation/widgets/build_current_section.dart';
 import 'package:celluweather_task1/features/home/presentation/widgets/build_daily_section.dart';
 import 'package:celluweather_task1/features/home/presentation/widgets/build_hourly_section.dart';
 import 'package:celluweather_task1/features/home/presentation/widgets/error_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 Widget buildStateWidget(
@@ -13,10 +13,13 @@ Widget buildStateWidget(
   WeatherState state,
   TextEditingController cityController,
 ) {
+  final screenWidth = MediaQuery.of(context).size.width;
+  final isWide = screenWidth > 600;
+
   if (state is WeatherInitial) {
     return const Center(
       key: ValueKey('initial'),
-      child: Text('Search in the world '),
+      child: Text('Search in the world'),
     );
   }
 
@@ -28,19 +31,19 @@ Widget buildStateWidget(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 100,
+            height: isWide ? 120 : 100,
             width: double.infinity,
             color: Colors.grey[300],
           ),
           const SizedBox(height: 20),
           Container(
-            height: 120,
+            height: isWide ? 140 : 120,
             width: double.infinity,
             color: Colors.grey[300],
           ),
           const SizedBox(height: 20),
           Container(
-            height: 200,
+            height: isWide ? 220 : 200,
             width: double.infinity,
             color: Colors.grey[300],
           ),
@@ -51,20 +54,26 @@ Widget buildStateWidget(
 
   if (state is WeatherLoaded) {
     final weather = state.weather;
-    return SingleChildScrollView(
+
+    return LayoutBuilder(
       key: const ValueKey('loaded'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildCurrentSection(context, weather),
-          const SizedBox(height: 20),
-          buildHourlySection(weather),
-          const SizedBox(height: 20),
-          buildDailySection(weather),
-          const SizedBox(height: 20),
-          AiPredictionWidget(),
-        ],
-      ),
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildCurrentSection(context, weather),
+              const SizedBox(height: 20),
+              buildHourlySection(weather),
+              const SizedBox(height: 20),
+              buildDailySection(weather),
+              const SizedBox(height: 20),
+              AiPredictionWidget(),
+            ],
+          ),
+        );
+      },
     );
   }
 

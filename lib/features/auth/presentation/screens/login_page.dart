@@ -59,7 +59,9 @@ class SignInScreen extends StatelessWidget {
                         );
 
                         context.read<LocalStorageCubit>().setLoggedIn(true);
-                        GoRouter.of(context).go(NavigationRoutes.weatherScreen);
+                        GoRouter.of(
+                          context,
+                        ).go('${NavigationRoutes.weatherScreen}/:city');
                         // GoRouter.of(context).go(
                         //   NavigationRoutes.weatherScreen,
                         //   extra: weatherEntity,
