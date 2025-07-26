@@ -20,7 +20,7 @@ abstract class NavigationRoutes {
 
 late final http.Client client;
 
-final forecastRepo = ForecastRepositoryImpl(ForecastRemoteDataSource(client));
+// final forecastRepo = ForecastRepositoryImpl(WeatherRemoteDataSource(client));
 final router = GoRouter(
   routes: [
     GoRoute(
@@ -38,11 +38,16 @@ final router = GoRouter(
     GoRoute(
       path: '${NavigationRoutes.weatherScreen}/:city',
       builder: (context, state) {
-        final city = state.pathParameters['city']!;
+        // final city = state.pathParameters['city']!;
 
         return BlocProvider(
-          create: (_) => ForecastCubit(GetForecastUseCase(forecastRepo)),
-          child: ForecastScreen(city: city),
+          create:
+              (_) => WeatherCubit(
+                GetWeatherUseCase(
+                  WeatherRepositoryImpl(WeatherRemoteDataSourceImpl()),
+                ),
+              ),
+          child: WeatherPage(),
         );
       },
     ),

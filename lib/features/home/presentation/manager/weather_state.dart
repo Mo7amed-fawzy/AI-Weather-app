@@ -1,21 +1,19 @@
 part of 'weather_cubit.dart';
 
-abstract class ForecastState {}
+abstract class WeatherState {}
 
-class ForecastInitial extends ForecastState {}
+class WeatherInitial extends WeatherState {}
 
-class ForecastLoading extends ForecastState {}
+class WeatherLoading extends WeatherState {}
 
-class ForecastLoaded extends ForecastState {
-  final List<ForecastDayEntity> forecast;
-  final int selectedIndex;
+class WeatherLoaded extends WeatherState {
+  final WeatherEntity weather;
 
-  ForecastLoaded(this.forecast, this.selectedIndex);
-
-  ForecastDayEntity get selectedDay => forecast[selectedIndex];
+  WeatherLoaded(this.weather);
 }
 
-class ForecastError extends ForecastState {
+class WeatherError extends WeatherState {
   final String message;
-  ForecastError(this.message);
+
+  WeatherError(this.message);
 }

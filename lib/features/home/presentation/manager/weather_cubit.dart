@@ -4,28 +4,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'weather_state.dart';
 
-class ForecastCubit extends Cubit<ForecastState> {
-  final GetForecastUseCase useCase;
+class WeatherCubit extends Cubit<WeatherState> {
+  final GetWeatherUseCase getWeatherUseCase;
 
-  ForecastCubit(this.useCase) : super(ForecastInitial());
+  WeatherCubit(this.getWeatherUseCase) : super(WeatherInitial());
 
-  List<ForecastDayEntity> _forecast = [];
-  int _selectedDayIndex = 0;
-
-  void fetchForecast(String city) async {
-    emit(ForecastLoading());
+  Future<void> fetchWeather(String cityName) async {
+    emit(WeatherLoading());
     try {
-      final result = await useCase(city);
-      _forecast = result;
-      _selectedDayIndex = 0;
-      emit(ForecastLoaded(_forecast, _selectedDayIndex));
+      final weather = await getWeatherUseCase(cityName);
+      emit(WeatherLoaded(weather));
     } catch (e) {
-      emit(ForecastError(e.toString()));
+      emit(WeatherError(e.toString()));
     }
-  }
-
-  void selectDay(int index) {
-    _selectedDayIndex = index;
-    emit(ForecastLoaded(_forecast, _selectedDayIndex));
   }
 }

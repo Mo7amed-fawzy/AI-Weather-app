@@ -1,7 +1,9 @@
 import 'package:celluweather_task1/core/navigation/go_router.dart';
+import 'package:celluweather_task1/core/styles/app_theme.dart';
 import 'package:celluweather_task1/core/utils/supabase_keys.dart';
 import 'package:celluweather_task1/features/auth/data/datasources/local_storage_cubit.dart';
 import 'package:celluweather_task1/features/auth/presentation/manager/auth_cubit.dart';
+import 'package:celluweather_task1/features/home/presentation/manager/theme/theme_cubit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,6 +41,9 @@ void main() async {
 class MyApp extends StatelessWidget {
   final supabaseAuthDatasource = SupabaseAuthDatasource();
   final GoRouter _router = router;
+  // final dataSource = WeatherRemoteDataSourceImpl();
+  // final repository = WeatherRepositoryImpl(dataSource);
+  // final getWeatherUseCase = GetWeatherUseCase(repository);
 
   MyApp({super.key});
 
@@ -57,10 +62,29 @@ class MyApp extends StatelessWidget {
                   context.read<LocalStorageCubit>(),
                 ),
           ),
+          BlocProvider(create: (_) => ThemeCubit()),
         ],
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          routerConfig: _router,
+        child: BlocBuilder<ThemeCubit, ThemeMode>(
+          builder: (context, themeMode) {
+            final isDark = themeMode == ThemeMode.dark;
+            final theme =
+                isDark
+                    ? AppTheme.darkNeoFuturisticTheme
+                    : AppTheme.lightNeoFuturisticTheme;
+
+            return AnimatedTheme(
+              data: theme,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              child: MaterialApp.router(
+                themeMode: themeMode,
+                theme: AppTheme.lightNeoFuturisticTheme,
+                darkTheme: AppTheme.darkNeoFuturisticTheme,
+                debugShowCheckedModeBanner: false,
+                routerConfig: _router,
+              ),
+            );
+          },
         ),
       ),
     );

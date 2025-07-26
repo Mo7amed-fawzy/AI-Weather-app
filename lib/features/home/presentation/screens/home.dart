@@ -1,253 +1,216 @@
-import 'package:celluweather_task1/features/home/presentation/manager/weather_cubit.dart';
+import 'package:celluweather_task1/core/navigation/go_router.dart';
+import 'package:celluweather_task1/features/ai_analysis/data/datasources/ai_remote_datasource.dart';
+import 'package:celluweather_task1/features/ai_analysis/domain/usecases/predict_tennis_usecase.dart';
+import 'package:celluweather_task1/features/ai_analysis/presentation/manager/ai_predict_cubit.dart';
+import 'package:celluweather_task1/features/auth/data/datasources/supabase_auth_datasource.dart';
+import 'package:celluweather_task1/features/home/data/datasource/city_search_remote_datasource_impl.dart';
+import 'package:celluweather_task1/features/home/presentation/manager/search/search_cubit.dart';
+import 'package:celluweather_task1/features/home/presentation/manager/theme/theme_cubit.dart';
+import 'package:celluweather_task1/features/home/presentation/widgets/animated_gradient_background.dart';
+import 'package:celluweather_task1/features/home/presentation/widgets/build_main_widget.dart';
+import 'package:celluweather_task1/features/home/presentation/widgets/custom_snackbar.dart';
+import 'package:celluweather_task1/features/home/presentation/widgets/get_current_location.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 
-class ForecastScreen extends StatelessWidget {
-  final String city;
+import 'package:celluweather_task1/features/home/presentation/manager/weather_cubit.dart';
 
-  const ForecastScreen({super.key, required this.city});
+class WeatherPage extends StatelessWidget {
+  final TextEditingController cityController = TextEditingController();
 
+  WeatherPage({super.key});
+
+  final SupabaseAuthDatasource supabaseAuthDatasource =
+      SupabaseAuthDatasource();
   @override
   Widget build(BuildContext context) {
-    context.read<ForecastCubit>().fetchForecast(city);
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => CitySearchCubit(CitySearchRemoteDataSourceImpl()),
+        ),
+        BlocProvider(
+          create:
+              (_) => AiPredictCubit(
+                PredictTennisUseCase(AiRemoteDataSourceImpl(http.Client())),
+              ),
+        ),
+      ],
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
+          return AnimatedGradientBackground(
+            child: Scaffold(
+              appBar: AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.logout),
+                  tooltip: 'Sign out',
+                  onPressed: () async {
+                    await supabaseAuthDatasource.signOut();
+                    context.go(NavigationRoutes.signInScreen);
+                  },
+                ),
+                title: const Text('VoidAI'),
+                actions: [
+                  // CurrentLocationButton(cityController: cityController),
+                  IconButton(
+                    icon: const Icon(Icons.my_location),
+                    tooltip: 'Use current location',
+                    onPressed: () async {
+                      final position = await getCurrentLocation();
+                      if (position != null) {
+                        final coords =
+                            '${position.latitude},${position.longitude}';
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A1E46),
-      body: SafeArea(
-        child: BlocBuilder<ForecastCubit, ForecastState>(
-          builder: (context, state) {
-            if (state is ForecastLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is ForecastLoaded) {
-              final selectedDay = state.selectedDay;
+                        // استدعاء الطقس
+                        await context.read<WeatherCubit>().fetchWeather(coords);
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              'Hello',
-                              style: TextStyle(
-                                color: Colors.blueAccent,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Eslam Sameh',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Icon(Icons.menu, color: Colors.white, size: 28),
-                      ],
-                    ),
+                        // جلب اسم المدينة بعد التحميل
+                        final state = context.read<WeatherCubit>().state;
+                        if (state is WeatherLoaded) {
+                          cityController.text = state.weather.location.name;
+                          CustomSnackbar(
+                            context,
+                            'Location set to ${state.weather.location.name}',
+                            // icon: Icons.check_circle,
+                          );
+                        } else {
+                          CustomSnackbar(context, 'Failed to get location');
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Location unavailable')),
+                        );
+                      }
+                    },
                   ),
-
-                  // Horizontal Days
-                  SizedBox(
-                    height: 80,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: state.forecast.length,
-                      itemBuilder: (context, index) {
-                        final day = state.forecast[index];
-                        return GestureDetector(
-                          onTap: () {
-                            context.read<ForecastCubit>().selectDay(index);
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  index == state.selectedIndex
-                                      ? Colors.white
-                                      : Colors.white24,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  // day.dayName,
-                                  day.date.split('-').first,
-                                  style: TextStyle(
-                                    color:
-                                        index == state.selectedIndex
-                                            ? Colors.black
-                                            : Colors.white70,
-                                  ),
+                  IconButton(
+                    icon: Icon(
+                      themeMode == ThemeMode.light
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
+                    ),
+                    onPressed: () {
+                      context.read<ThemeCubit>().toggleTheme();
+                    },
+                  ),
+                ],
+              ),
+              body: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    BlocBuilder<CitySearchCubit, List<String>>(
+                      builder: (context, citySuggestions) {
+                        return Column(
+                          children: [
+                            TextField(
+                              controller: cityController,
+                              onChanged: (value) {
+                                context.read<CitySearchCubit>().search(value);
+                              },
+                              decoration: InputDecoration(
+                                hintText: 'Enter city name',
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.search),
+                                  onPressed: () {
+                                    final city = cityController.text.trim();
+                                    if (city.isNotEmpty) {
+                                      context.read<WeatherCubit>().fetchWeather(
+                                        city,
+                                      );
+                                      context
+                                          .read<CitySearchCubit>()
+                                          .clearSuggestions();
+                                    }
+                                  },
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  day.date.split('-').last,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color:
-                                        index == state.selectedIndex
-                                            ? Colors.black
-                                            : Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
+                            if (citySuggestions.isNotEmpty)
+                              Container(
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).cardColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      blurRadius: 6,
+                                      color: Colors.black.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: citySuggestions.length,
+                                  itemBuilder: (context, index) {
+                                    final suggestion = citySuggestions[index];
+                                    return ListTile(
+                                      title: Text(suggestion),
+                                      onTap: () {
+                                        cityController.text = suggestion;
+                                        context
+                                            .read<WeatherCubit>()
+                                            .fetchWeather(suggestion);
+                                        context
+                                            .read<CitySearchCubit>()
+                                            .clearSuggestions();
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                          ],
                         );
                       },
                     ),
-                  ),
+                    const SizedBox(height: 20),
 
-                  const SizedBox(height: 20),
+                    // Weather Display with Pull to Refresh
+                    Expanded(
+                      child: BlocBuilder<WeatherCubit, WeatherState>(
+                        builder: (context, state) {
+                          return RefreshIndicator(
+                            onRefresh: () async {
+                              final city = cityController.text.trim();
+                              if (city.isNotEmpty) {
+                                await context.read<WeatherCubit>().fetchWeather(
+                                  city,
+                                );
+                              }
+                            },
 
-                  // Steps
-                  Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.blueAccent,
-                              width: 6,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 500),
+                              switchInCurve: Curves.easeIn,
+                              switchOutCurve: Curves.easeOut,
+                              transitionBuilder: (child, animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                );
+                              },
+
+                              child: buildStateWidget(
+                                context,
+                                state,
+                                cityController,
+                              ),
                             ),
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.directions_walk,
-                                color: Colors.white,
-                                size: 30,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '5234',
-                                style: TextStyle(
-                                  fontSize: 36,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Steps',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Stats Row
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatCircle('12.4', 'KM'),
-                        _buildStatCircle('${selectedDay.humidity}', 'Humidity'),
-                        _buildStatCircle('${selectedDay.wind}', 'Wind'),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Placeholder Chart
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      height: 130,
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Graph Placeholder',
-                          style: TextStyle(color: Colors.white70),
-                        ),
+                          );
+                        },
                       ),
                     ),
-                  ),
-
-                  const Spacer(),
-
-                  // Bottom Navigation
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: Colors.white12,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Icon(Icons.star, color: Colors.white),
-                        Icon(Icons.person, color: Colors.white),
-                        Icon(Icons.home, color: Colors.white, size: 30),
-                        Icon(Icons.check_box, color: Colors.white),
-                        Icon(Icons.star_border, color: Colors.white),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-                ],
-              );
-            } else if (state is ForecastError) {
-              return Center(child: Text('Error: ${state.message}'));
-            }
-            return const SizedBox.shrink();
-          },
-        ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
-    );
-  }
-
-  Widget _buildStatCircle(String value, String label) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            CircularProgressIndicator(
-              value: 0.8,
-              color: Colors.blueAccent,
-              backgroundColor: Colors.white24,
-              strokeWidth: 6,
-            ),
-            Text(
-              value,
-              style: const TextStyle(color: Colors.white, fontSize: 18),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text(label, style: const TextStyle(color: Colors.white70)),
-      ],
     );
   }
 }
